@@ -1,0 +1,10 @@
+bin/
+obj/
+*.userprefs
+.suo
+.vs
+*.user
+/Docker/pollog_server
+/Docker/pollog_data
+nuget.exe
+packages/
