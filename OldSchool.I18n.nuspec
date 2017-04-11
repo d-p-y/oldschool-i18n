@@ -20,5 +20,6 @@
 	<file src="OldSchool.I18n.Tool/bin/Release/OldSchool.I18n.Lib.pdb" target="tools/net40/OldSchool.I18n.Lib.pdb" />
 	<file src="OldSchool.I18n.Tool/bin/Release/FSharp.Core.dll" target="tools/net40/FSharp.Core.dll" />
 	<file src="OldSchool.I18n.Tool/bin/Release/FSharp.Data.dll" target="tools/net40/FSharp.Data.dll" />
+	<file src="OldSchool.I18n.Tool/bin/Release/OldSchool.I18n.Tool.exe.config" target="tools/net40/OldSchool.I18n.Tool.exe.config" />
   </files>
 </package>
