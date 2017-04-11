@@ -8,3 +8,5 @@ obj/
 /Docker/pollog_data
 nuget.exe
 packages/
+*.nupkg
+runGitVersionPropagate.bat
