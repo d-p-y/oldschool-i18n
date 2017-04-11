@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>OldSchool.I18n</id>
+	<title>Find and extract translatable strings from C# and F# sources</title>
+    <version>1.0.0.0</version>
+    <authors>Dominik Pytlewski</authors>
+    <owners/>
+    <licenseUrl>https://github.com/d-p-y/oldschool-i18n/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/d-p-y/oldschool-i18n</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Finds localizable messages in *.fs and *.cs files by looking for calls such as I18n.Translate("message") in those sources. Puts unique messages into specified JSON file (updates it if neccessary). Class name, method name and other things are configurable</description>
+    <copyright>Copyright 2017</copyright>
+    <tags>translation i18n extractor extraction</tags>
+  </metadata>
+  <files>
+    <file src="OldSchool.I18n.Tool/bin/Release/OldSchool.I18n.Tool.exe" target="tools/net40/OldSchool.I18n.Tool.exe" />
+	<file src="OldSchool.I18n.Tool/bin/Release/OldSchool.I18n.Tool.pdb" target="tools/net40/OldSchool.I18n.Tool.pdb" />
+    <file src="OldSchool.I18n.Tool/bin/Release/OldSchool.I18n.Lib.dll" target="tools/net40/OldSchool.I18n.Lib.dll" />
+	<file src="OldSchool.I18n.Tool/bin/Release/OldSchool.I18n.Lib.pdb" target="tools/net40/OldSchool.I18n.Lib.pdb" />
+	<file src="OldSchool.I18n.Tool/bin/Release/FSharp.Core.dll" target="tools/net40/FSharp.Core.dll" />
+	<file src="OldSchool.I18n.Tool/bin/Release/FSharp.Data.dll" target="tools/net40/FSharp.Data.dll" />
+  </files>
+</package>
