@@ -36,33 +36,38 @@ let (|ThenChar|_|) needed input =
     |ch::rest when ch = needed -> Some(rest)
     |_ -> None
 
-let rec beginsWithSoFar (fullMatch:_ list) (paritalInput: _ list) =
-    if fullMatch.Length < paritalInput.Length then false //not expected to be called this way
+let rec beginsWithSoFar (fullMatch:_ list) (partialInput: _ list) =
+    if fullMatch.Length < partialInput.Length then false //not expected to be called this way
     else
-        if fullMatch.Length = paritalInput.Length then paritalInput = fullMatch
+        if fullMatch.Length = partialInput.Length then partialInput = fullMatch
         else 
-            match (fullMatch, paritalInput) with
+            match (fullMatch, partialInput) with
             | _, [] -> true
             | [], _ -> false
             |ch1::expected, ch2::fact when ch1 = ch2 -> beginsWithSoFar expected fact
             |_, _ -> false
 
-let rec thenPhrase (expected:_ list) input fact =
+let rec thenPhrase notFollowedBy (needed:_ list) input fact =
     match input with
     | [] -> None
-    | ch::rest ->
+    | ch::inputRemain ->
         let fact = ch::fact
         
-        if fact.Length = expected.Length then
-            if expected = (List.rev fact) then Some(fact, rest)
+        if fact.Length = needed.Length then
+            if needed = (List.rev fact) 
+            then
+                match notFollowedBy, inputRemain with
+                |Some notFollowedBy, ch::_ when ch = notFollowedBy -> None
+                |_ -> Some(fact, inputRemain)
             else None
         else 
-            if fact.Length > expected.Length then None
+            if fact.Length > needed.Length then None
             else
-                if beginsWithSoFar expected (List.rev fact) then thenPhrase expected rest fact
+                if beginsWithSoFar needed (List.rev fact) then thenPhrase notFollowedBy needed inputRemain fact
                 else None
 
-let (|ThenPhrase|_|) (needed:char list) (input:char list) = thenPhrase needed input List.empty
+let (|ThenPhrase|_|) needed input = thenPhrase None needed input List.empty
+let (|ThenPhraseNotFollowedBy|_|) needed notFollowedBy input = thenPhrase (Some notFollowedBy) needed input List.empty
     
 let rec collectTillFwd terminator notFollowedBy input former collected =
     match input,former with
@@ -185,7 +190,7 @@ type Extractor(log) =
             extractFs clazz mthd fnd content {state with InSingleLineComment = false; LineNo = state.LineNo + 1; WhitespaceRelevant = false}
         | {InSingleLineComment = true}, _ -> 
             extractFs clazz mthd fnd content.Tail state
-        | {InMultiLineComment = false}, ThenPhrase fsMlLineCommentStart (_,content) -> 
+        | {InMultiLineComment = false}, ThenPhraseNotFollowedBy fsMlLineCommentStart ')' (_,content) -> 
             extractFs clazz mthd fnd content {state with InMultiLineComment = true}
         | {InMultiLineComment = true}, ThenPhrase fsMlLineCommentEnd (_,content) -> 
            extractFs clazz mthd fnd content {state with InMultiLineComment = false}

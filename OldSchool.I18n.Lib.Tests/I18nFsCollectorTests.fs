@@ -7,9 +7,18 @@ open Xunit.Abstractions
 type FsExtractorTests(log:ITestOutputHelper) = 
     let i18Class = "I18n"
     let i18Method = "Translate"
-        
-    let logFunc = (fun x -> (x ()) |> log.WriteLine)
+       
+    let logFunc = (fun x -> (x ()) |> log.WriteLine)  
     
+    [<Fact>]
+    let ``fsharp multiply not treated as comment`` () =
+        let sut = Extractor logFunc
+        let found = sut.ExtractFs i18Class i18Method """c:\smthelse""" """
+                let _ = qty |> decimal |> (*) itemCost
+                I18n.Translate("Something {0} zzz {1}")
+"""
+        Assert.Equal<Item list>([{Item.Msg = "Something {0} zzz {1}"; Item.Row = 2; File = """c:\smthelse"""}], found)
+
     [<Fact>]
     let ``fsharp line - ignore single line comments`` () =
         let sut = Extractor logFunc
