@@ -90,7 +90,7 @@ where ZZZZZ will typically be CultureInfo's name such as pl-PL
 Supported command line parameters:
  * -c NameOfI18nClass
  * -m NameOfI18nMethod
- * -o pathToOutputJsonFile
+ * -o pathToOutputJsonFile  
   created or updated depending on its existence
  * -q  
  Include empty 'at' attribute in JSON. You won't see translation file as changed in your Version Control System if just a location of messages changed.
