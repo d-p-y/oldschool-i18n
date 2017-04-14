@@ -1,3 +1,4 @@
+//Copyright © 2016 Dominik Pytlewski. Licensed under Apache License 2.0. See LICENSE file for details
 namespace I18nCollector.AssemblyInfo
 
 open System.Reflection

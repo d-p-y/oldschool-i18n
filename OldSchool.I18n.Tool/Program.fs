@@ -1,4 +1,5 @@
-﻿module OldSchool.I18n.Tool.Program
+﻿//Copyright © 2016 Dominik Pytlewski. Licensed under Apache License 2.0. See LICENSE file for details
+module OldSchool.I18n.Tool.Program
 
 open OldSchool.I18n.Lib
 open FSharp.Data
