@@ -46,6 +46,7 @@ type Config = {
     OutputPath : string
     SearchDirs : string list
     IncludeAt : bool
+    AdditionalTranslationFiles : string list
 }
 
 type RawConfig = {
@@ -55,25 +56,29 @@ type RawConfig = {
     SearchDirs : string list
     IncludeAt : bool
     Quit : bool
+    IncludeTranslationFile : string list
 }
 with
     static member Empty = 
-        {RawConfig.I18nClassName = None; I18nMethodName = None; OutputPath = None; SearchDirs = List.Empty; Quit = false; IncludeAt = true}
+        {RawConfig.I18nClassName = None; I18nMethodName = None; OutputPath = None; SearchDirs = List.Empty; Quit = false; IncludeAt = true; IncludeTranslationFile = []}
     member self.ToConfig () =
-        match self.I18nClassName, self.I18nMethodName, self.OutputPath, self.SearchDirs with
-        |None, _, _, _ ->  failwith "i18n classname not specified via -c parameter"
-        |_, None, _, _ ->  failwith "i18n methodname not specified via -m parameter"
-        |_, _, None, _ ->  failwith "no output path specified via -o parameter"
-        |_, _, _, [] ->  failwith "no dirs to scan specified via -d parameter"
-        |_, _, _, x when x |> List.exists (fun x -> Directory.Exists(x) |> not) -> 
+        match self.I18nClassName, self.I18nMethodName, self.OutputPath, self.SearchDirs, self.IncludeTranslationFile with
+        |None, _, _, _, _ ->  failwith "i18n classname not specified via -c parameter"
+        |_, None, _, _, _ ->  failwith "i18n methodname not specified via -m parameter"
+        |_, _, None, _, _ ->  failwith "no output path specified via -o parameter"
+        |_, _, _, [], _ ->  failwith "no dirs to scan specified via -d parameter"
+        |_, _, _, x, _ when x |> List.exists (fun x -> Directory.Exists(x) |> not) -> 
             failwith "some dirs to scan don't exist (specified via -d parameter)"
-        |Some clazz, Some mthd, Some outp, dirs -> 
+        |_, _, _, _, x when x |> List.exists (fun x -> File.Exists(x) |> not) -> 
+            failwith "some 'translation file to include' don't exist (specified via -i parameter)"
+        |Some clazz, Some mthd, Some outp, dirs, includeFiles -> 
             {
                 Config.I18nClassName = clazz
                 I18nMethodName = mthd
                 OutputPath = outp
                 SearchDirs = dirs |> List.map(fun x -> Path.GetFullPath(x))
                 IncludeAt = self.IncludeAt
+                AdditionalTranslationFiles = includeFiles |> List.map(fun x -> Path.GetFullPath(x))
             }
 
 let rec parseArgs (state:RawConfig) args =
@@ -92,6 +97,10 @@ let rec parseArgs (state:RawConfig) args =
         match rest with
         |dir::rest -> parseArgs {state with SearchDirs = dir::state.SearchDirs} rest
         |_ -> failwith "expected to have directory after -d"
+    |"-i"::rest ->
+        match rest with
+        |filePath::rest -> parseArgs {state with IncludeTranslationFile = filePath::state.IncludeTranslationFile} rest
+        |_ -> failwith "expected to have filepath after -i"
     |"-o"::rest -> 
         match rest with
         |out::rest -> parseArgs {state with OutputPath = Some out} rest 
@@ -105,6 +114,9 @@ let rec parseArgs (state:RawConfig) args =
 
             -d zzzz
                 Add directory zzz to scan list
+
+            -i zzzz
+                Import additional translation from file - read only. Parameter may be used several times
 
             -o zzzz
                 Load old translation from file zzzz and write updated translation into file zzzz
@@ -143,13 +155,26 @@ let main argv =
     let i18Method = "Translate"
 
     let oldTransl = 
-        if outExists 
-        then
-            TranslationRecord.Parse(File.ReadAllText cfg.OutputPath).Items
-            |> Seq.ofArray
-            |> Seq.map (fun x -> x.M, x.T)
-            |> Map.ofSeq
-        else Map.empty
+        let updated =
+            (if outExists 
+                then
+                    TranslationRecord.Parse(File.ReadAllText cfg.OutputPath).Items
+                    |> Seq.ofArray
+                    |> Seq.map (fun x -> x.M, x.T)            
+                else [] |> Seq.ofList)
+
+        let additionals =
+            cfg.AdditionalTranslationFiles
+            |> Seq.map(fun x ->             
+                printfn "including translation from file: %s" x
+
+                TranslationRecord.Parse(File.ReadAllText x).Items
+                |> Seq.ofArray
+                |> Seq.map (fun x -> x.M, x.T) )
+
+        Seq.concat additionals 
+        |> Seq.append updated
+        |> Map.ofSeq
       
     let withoutBaseDir (inp:string) =
         //assumes case sensitive paths
