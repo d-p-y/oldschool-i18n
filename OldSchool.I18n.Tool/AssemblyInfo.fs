@@ -1,4 +1,4 @@
-//Copyright © 2016 Dominik Pytlewski. Licensed under Apache License 2.0. See LICENSE file for details
+//Copyright © 2018 Dominik Pytlewski. Licensed under Apache License 2.0. See LICENSE file for details
 namespace OldSchool.I18n.Tool.AssemblyInfo
 
 open System.Reflection
@@ -13,7 +13,7 @@ open System.Runtime.InteropServices
 [<assembly: AssemblyConfiguration("")>]
 [<assembly: AssemblyCompany("Dominik Pytlewski")>]
 [<assembly: AssemblyProduct("OldSchool.I18n.Tool")>]
-[<assembly: AssemblyCopyright("Copyright © Dominik Pytlewski 2016")>]
+[<assembly: AssemblyCopyright("Copyright © Dominik Pytlewski 2018")>]
 [<assembly: AssemblyTrademark("")>]
 [<assembly: AssemblyCulture("")>]
 
