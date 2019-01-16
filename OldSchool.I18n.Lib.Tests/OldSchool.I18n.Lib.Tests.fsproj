@@ -10,6 +10,7 @@
   <ItemGroup>
     <Compile Include="I18nCsCollectorTests.fs" />
     <Compile Include="I18nFsCollectorTests.fs" />
+    <Compile Include="ExtractionTests.fs" />
   </ItemGroup>
 
   <ItemGroup>
