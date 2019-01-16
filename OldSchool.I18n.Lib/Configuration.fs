@@ -41,7 +41,8 @@ with
                 AdditionalTranslationFiles = includeFiles |> List.map(fun x -> fs.Path.GetFullPath(x))
             }
 
-let rec parseArgs (state:RawConfig) args =
+let rec parseArgs log (state:RawConfig) args =
+    let parseArgs = parseArgs log
     match args with
     |"-q"::rest -> 
         parseArgs {state with IncludeAt = false} rest
@@ -65,8 +66,8 @@ let rec parseArgs (state:RawConfig) args =
         match rest with
         |out::rest -> parseArgs {state with OutputPath = Some out} rest 
         |_ -> failwith "expected to have outputpath after -o"
-    |"-h"::rest|"/?"::rest|"--help"::rest -> 
-        printf """
+    |"-h"::_|"/?"::_|"--help"::_ -> 
+        """
             -h 
             /?
             --help
@@ -89,7 +90,7 @@ let rec parseArgs (state:RawConfig) args =
 
             -q 
                 Don't include content of "at" in JSON - don't add references where message is present in sources
-        """
+        """ |> log
         {state with Quit = true}
     | [] -> state
     |_ -> failwithf "unexpected parameters: %A" args

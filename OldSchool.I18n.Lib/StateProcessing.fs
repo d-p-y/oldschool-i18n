@@ -4,6 +4,7 @@ module OldSchool.I18n.StateProcessing
 open OldSchool.I18n.Parsing
 open OldSchool.I18n.Configuration
 open FSharp.Data
+open System.Collections.Generic
 
 type ExtractableCollector(fs:System.IO.Abstractions.IFileSystem,i18Class,i18Method) =
     let fileExtensions = [".cs"; ".fs"]
@@ -52,7 +53,7 @@ let trimBaseDir (cfg:Config) (inp:string) =
     |Some x -> x.TrimStart(System.IO.Path.DirectorySeparatorChar)
     |_ -> inp
 
-let collectItems fs (cfg:Config) oldMsgToTransl = 
+let collectItems fs (cfg:Config) (oldMsgToTransl:IDictionary<_,_>) = 
     cfg.I18nMethodName
     |> Seq.collect(fun i18Method ->
         ExtractableCollector(fs, cfg.I18nClassName,i18Method).Extract cfg.SearchDirs)         
@@ -61,21 +62,40 @@ let collectItems fs (cfg:Config) oldMsgToTransl =
     |> Seq.map (fun (msg,all) -> 
         {
             FoldedItem.Message = msg
-            Translated = defaultArg (oldMsgToTransl |> Map.tryFind msg) "" 
+            Translated = 
+                let x = 
+                    match oldMsgToTransl.TryGetValue msg with
+                    |false, _ -> None
+                    |true, x -> Some x
+
+                defaultArg x "" 
             FoundAt = 
                 if cfg.IncludeAt 
                 then all |> Seq.map (fun x -> sprintf "%s:%i" (trimBaseDir cfg x.File) x.Row) |> Array.ofSeq
-                else Array.empty
+                else null
         } )
                 
-let serializeItemsIntoTextJson res = 
+let serializeItemsIntoTextJson cfg res = 
     let items = 
         res 
         |> Seq.map(fun x -> TranslationRecord.Item(x.Message, x.Translated, x.FoundAt)) 
         |> Array.ofSeq
         |> TranslationRecord.Coll
-        
-    items.JsonValue.ToString()
+       
+    //thanks Thomas: https://stackoverflow.com/questions/50160363/f-json-type-provider-do-not-serialize-null-values
+    let rec dropNulls x =
+        match x with
+        |JsonValue.Record x ->
+            x 
+            |> Array.choose (fun (k, v) -> if v = JsonValue.Null then None else Some(k, dropNulls v))
+            |> JsonValue.Record
+        |JsonValue.Array x -> x |> Array.map dropNulls |> JsonValue.Array
+        |x -> x
+            
+    (
+        items.JsonValue 
+        |> (fun x -> if (cfg:Config).IncludeAt then x else dropNulls x)
+    ).ToString()
 
 let importTransl (fs:System.IO.Abstractions.IFileSystem) (cfg:Config) = 
     let outExists = fs.File.Exists cfg.OutputPath
@@ -100,3 +120,17 @@ let importTransl (fs:System.IO.Abstractions.IFileSystem) (cfg:Config) =
     additionals 
     |> Seq.append updated
     |> Map.ofSeq
+
+let mainProcess log (cfg:Config) (fs:System.IO.Abstractions.IFileSystem) =        
+    log "will scan dirs:"
+    cfg.SearchDirs |> List.iter(fun x -> printfn "   %s" (fs.Path.GetFullPath(x)))
+    
+    sprintf "%s translation at: %s"
+        (if fs.File.Exists cfg.OutputPath then "will update " else "will create") 
+        cfg.OutputPath
+    |> log
+
+    let translationAsText = 
+        cfg |> importTransl fs |> collectItems fs cfg |> serializeItemsIntoTextJson cfg
+
+    fs.File.WriteAllText(cfg.OutputPath, translationAsText)
