@@ -45,8 +45,7 @@ Then it loads existing translation in JSON format (if there's any) and merges th
   "items": [
     {
       "m": "extracted English message",
-      "t": "your provided localized message",
-      "at": []
+      "t": "your provided localized message"
     },
 	...
 }
@@ -71,18 +70,22 @@ or depending on verbosity setting:
 
 # How to install it?
 
-Download it and compile it OR take it from nuget
+Download it and compile it OR install dotnet core and then invoke 
 ```
-Install-Package Oldschool.I18n
+dotnet tool install --global dotnet-oldschool-i18n
 ``` 
+
+If you decide to uninstall it later then use: 
+```
+dotnet tool uninstall --global dotnet-oldschool-i18n
+```
 
 # How to use it?
 
-Simpliest use is to add it via nuget and then create batch file in root folder of your solution with following content
+Once installed as global tool it can be invoked anyhwere
 
 ```
-cd packages\OldSchool.I18n*\tools\net40
-OldSchool.I18n.Tool.exe -c I18n -m Translate -o ..\..\..\..\translation_ZZZZZ.json -q -d ..\..\..\..
+dotnet-oldschool-i18n -c I18n -m Translate -o translation_ZZZZZ.json -d .
 ```
 
 where ZZZZZ will typically be CultureInfo's name such as pl-PL
@@ -93,9 +96,9 @@ Supported command line parameters:
  * -o pathToOutputJsonFile  
   created or updated depending on its existence
  * -q  
- Include empty 'at' attribute in JSON. You won't see translation file as changed in your Version Control System if just a location of messages changed.
- 'At' section may be usefull if you need to identify message origin.
- * -d directoryToScan
+ Include 'at' attribute in JSON. Thanks to that you won't see translation file as changed in your Version Control System if just a location of messages changed.
+ 'At' section may be useful in case need to identify message origin.
+ * -d directoryToScan  
  Adds directory with sources to be recoursively scanned
  
 # Is it stable?
