@@ -1,12 +1,11 @@
 ﻿//Copyright © 2019 Dominik Pytlewski. Licensed under Apache License 2.0. See LICENSE file for details
 module OldSchool.I18n.StateProcessing
 
-open System.IO
 open OldSchool.I18n.Parsing
 open OldSchool.I18n.Configuration
 open FSharp.Data
 
-type ExtractableCollector(i18Class,i18Method) =
+type ExtractableCollector(fs:System.IO.Abstractions.IFileSystem,i18Class,i18Method) =
     let fileExtensions = [".cs"; ".fs"]
     let extractOne filePath content = 
         content 
@@ -15,12 +14,12 @@ type ExtractableCollector(i18Class,i18Method) =
             else (Extractor (fun _ -> ())).ExtractCs i18Class i18Method filePath
 
     let rec extract dir =
-        let subdirs = Directory.GetDirectories(dir) |> Seq.map extract |> Seq.concat
+        let subdirs = fs.Directory.GetDirectories(dir) |> Seq.map extract |> Seq.concat
 
         let result = 
-            Directory.GetFiles(dir) 
+            fs.Directory.GetFiles(dir) 
             |> Seq.filter(fun file -> fileExtensions |> List.exists (fun ext -> file.ToLower().EndsWith(ext)))
-            |> Seq.map(fun filePath -> filePath |> File.ReadAllText |> extractOne filePath ) 
+            |> Seq.map(fun filePath -> filePath |> fs.File.ReadAllText |> extractOne filePath ) 
             |> Seq.concat
 
         [result; subdirs] |> Seq.concat
@@ -53,10 +52,10 @@ let trimBaseDir (cfg:Config) (inp:string) =
     |Some x -> x.TrimStart(System.IO.Path.DirectorySeparatorChar)
     |_ -> inp
 
-let collectItems (cfg:Config) oldMsgToTransl = 
+let collectItems fs (cfg:Config) oldMsgToTransl = 
     cfg.I18nMethodName
     |> Seq.collect(fun i18Method ->
-        ExtractableCollector(cfg.I18nClassName,i18Method).Extract cfg.SearchDirs)         
+        ExtractableCollector(fs, cfg.I18nClassName,i18Method).Extract cfg.SearchDirs)         
     |> Seq.groupBy (fun x -> x.Msg)
     |> Seq.sortBy (fun (x,_) -> x)
     |> Seq.map (fun (msg,all) -> 
@@ -78,13 +77,13 @@ let serializeItemsIntoTextJson res =
         
     items.JsonValue.ToString()
 
-let importTransl (cfg:Config) = 
-    let outExists = File.Exists cfg.OutputPath
+let importTransl (fs:System.IO.Abstractions.IFileSystem) (cfg:Config) = 
+    let outExists = fs.File.Exists cfg.OutputPath
 
     let updated =
         (if outExists 
             then
-                TranslationRecord.Parse(File.ReadAllText cfg.OutputPath).Items
+                TranslationRecord.Parse(fs.File.ReadAllText cfg.OutputPath).Items
                 |> Seq.ofArray
                 |> Seq.map (fun x -> x.M, x.T)            
             else [] |> Seq.ofList)
@@ -94,7 +93,7 @@ let importTransl (cfg:Config) =
         |> Seq.collect(fun x ->             
             printfn "including translation from file: %s" x
 
-            TranslationRecord.Parse(File.ReadAllText x).Items
+            TranslationRecord.Parse(fs.File.ReadAllText x).Items
             |> Seq.ofArray
             |> Seq.map (fun x -> x.M, x.T) )
 
