@@ -20,7 +20,7 @@ type RawConfig = {
 }
 with
     static member Empty = 
-        {RawConfig.I18nClassName = None; I18nMethodName = []; OutputPath = None; SearchDirs = List.Empty; Quit = false; IncludeAt = true; IncludeTranslationFile = []}
+        {RawConfig.I18nClassName = None; I18nMethodName = []; OutputPath = None; SearchDirs = List.Empty; Quit = false; IncludeAt = false; IncludeTranslationFile = []}
     member self.ToConfig (fs:System.IO.Abstractions.IFileSystem) =
         match self.I18nClassName, self.I18nMethodName, self.OutputPath, self.SearchDirs, self.IncludeTranslationFile with
         |None, _, _, _, _ ->  failwith "i18n classname not specified via -c parameter"
@@ -45,7 +45,7 @@ let rec parseArgs log (state:RawConfig) args =
     let parseArgs = parseArgs log
     match args with
     |"-q"::rest -> 
-        parseArgs {state with IncludeAt = false} rest
+        parseArgs {state with IncludeAt = true} rest
     |"-c"::rest -> 
         match rest with
         |clazz::rest -> parseArgs {state with I18nClassName = Some clazz} rest
@@ -89,7 +89,7 @@ let rec parseArgs log (state:RawConfig) args =
                 Use zzzz as expected I18n class name
 
             -q 
-                Don't include content of "at" in JSON - don't add references where message is present in sources
+                Include content of "at" in JSON - add references where message is present in sources
         """ |> log
         {state with Quit = true}
     | [] -> state
