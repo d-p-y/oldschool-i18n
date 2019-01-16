@@ -1,10 +1,11 @@
-﻿//Copyright © 2018 Dominik Pytlewski. Licensed under Apache License 2.0. See LICENSE file for details
-module OldSchool.I18n.Lib
+﻿module OldSchool.I18n.Parsing
 
 type Item = {
     Msg : string
     File : string
-    Row : int //0 based index
+
+    ///0 based index
+    Row : int 
    }
 
 type CsMatchState = 

@@ -2,7 +2,7 @@
 namespace OldSchool.I18n.Lib.Tests
 
 open Xunit
-open OldSchool.I18n.Lib
+open OldSchool.I18n.Parsing
 open Xunit.Abstractions
 
 type FsExtractorTests(log:ITestOutputHelper) = 
