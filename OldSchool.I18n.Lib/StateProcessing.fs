@@ -1,5 +1,4 @@
-﻿//Copyright © 2019 Dominik Pytlewski. Licensed under Apache License 2.0. See LICENSE file for details
-module OldSchool.I18n.StateProcessing
+﻿module OldSchool.I18n.StateProcessing
 
 open OldSchool.I18n.Parsing
 open OldSchool.I18n.Configuration
