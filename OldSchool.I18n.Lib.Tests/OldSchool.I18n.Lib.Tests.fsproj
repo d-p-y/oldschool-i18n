@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1;net462</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net48</TargetFrameworks>
     <Version>1.4.0.1</Version>
     <Authors>Dominik Pytlewski</Authors>
     <Copyright>Copyright © Dominik Pytlewski 2019</Copyright>
