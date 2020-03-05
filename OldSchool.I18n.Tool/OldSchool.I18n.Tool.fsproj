@@ -20,6 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.IO.Abstractions" Version="9.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\OldSchool.I18n.Lib\OldSchool.I18n.Lib.fsproj" />
   </ItemGroup>
 
