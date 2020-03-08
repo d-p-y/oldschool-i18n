@@ -4,7 +4,7 @@
     <TargetFrameworks>netstandard2.1;net48</TargetFrameworks>
     <Version>1.4.0.1</Version>
     <Authors>Dominik Pytlewski</Authors>
-    <Copyright>Copyright © Dominik Pytlewski 2019</Copyright>
+    <Copyright>Copyright © Dominik Pytlewski 2020</Copyright>
     <PackageLicenseUrl>https://github.com/d-p-y/oldschool-i18n/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/d-p-y/oldschool-i18n</PackageProjectUrl>
     <Description>Finds localizable messages in *.fs and *.cs files by looking for calls such as I18n.Translate("message") in those sources. Puts unique messages into specified JSON file (updates it if neccessary). Class name, method name and other things are configurable</Description>

@@ -4,7 +4,7 @@
     <TargetFrameworks>netcoreapp3.1;net48</TargetFrameworks>
     <Version>1.4.0.1</Version>
     <Authors>Dominik Pytlewski</Authors>
-    <Copyright>Copyright © Dominik Pytlewski 2019</Copyright>
+    <Copyright>Copyright © Dominik Pytlewski 2020</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
