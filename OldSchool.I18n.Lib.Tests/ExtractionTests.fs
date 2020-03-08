@@ -13,7 +13,8 @@ type ExtractionTests(log:ITestOutputHelper) =
     let i18Method = "Translate"
        
     let logFunc = (fun x -> (x ()) |> log.WriteLine)  
-    
+    let assertEqualString(x, y) = Assert.Equal(x,y, ignoreLineEndingDifferences=true)
+
     [<Fact>]
     let ``finds single classfile with one message without at`` () =
         let fs =            
@@ -41,7 +42,7 @@ type ExtractionTests(log:ITestOutputHelper) =
                 } 
             collectItems fs cfg Map.empty |> serializeItemsIntoTextJson cfg
 
-        Assert.Equal("""{
+        assertEqualString("""{
   "items": [
     {
       "m": "Something {0} zzz {1}",
@@ -77,7 +78,7 @@ type ExtractionTests(log:ITestOutputHelper) =
                 } 
             collectItems fs cfg Map.empty |> serializeItemsIntoTextJson cfg
 
-        Assert.Equal("""{
+        assertEqualString("""{
   "items": [
     {
       "m": "Something {0} zzz {1}",
@@ -117,20 +118,19 @@ type ExtractionTests(log:ITestOutputHelper) =
             |> Map.ofSeq
             |> MockFileSystem
 
-        let foundmessagesJson =
-            let cfg = 
-                {
-                    Config.I18nClassName = "I18n"
-                    I18nMethodName = ["Translate"]
-                    OutputPath = """c:\projects\testing\translation.json"""
-                    SearchDirs = ["""c:\projects\testing"""]
-                    IncludeAt = false
-                    AdditionalTranslationFiles = List.empty
-                } 
+        let cfg = 
+            {
+                Config.I18nClassName = "I18n"
+                I18nMethodName = ["Translate"]
+                OutputPath = """c:\projects\testing\translation.json"""
+                SearchDirs = ["""c:\projects\testing"""]
+                IncludeAt = false
+                AdditionalTranslationFiles = List.empty
+            } 
             
-            mainProcess (fun x -> log.WriteLine x) cfg fs
-
-        Assert.Equal("""{
+        mainProcess (fun x -> log.WriteLine x) cfg fs
+            
+        assertEqualString("""{
   "items": [
     {
       "m": "Something new",

@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "OldSchool.I18n.Lib", "OldSchool.I18n.Lib\OldSchool.I18n.Lib.fsproj", "{4C18A185-8FA8-4EC0-A52A-F2EF0CA590B5}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "OldSchool.I18n.Lib.Tests", "OldSchool.I18n.Lib.Tests\OldSchool.I18n.Lib.Tests.fsproj", "{2B88C189-4B78-499C-8C07-32537E5069C1}"
 EndProject
 Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "OldSchool.I18n.Tool", "OldSchool.I18n.Tool\OldSchool.I18n.Tool.fsproj", "{CBAB5ED1-A107-4598-B477-D88029969F2C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OldSchool.I18n.Lib.Tests.CsFiles", "OldSchool.I18n.Lib.Tests.CsFiles\OldSchool.I18n.Lib.Tests.CsFiles.csproj", "{8D0F7EB3-89CE-4BF4-8C35-B3E0498A5723}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +57,18 @@ Global
 		{CBAB5ED1-A107-4598-B477-D88029969F2C}.Release|x64.Build.0 = Release|Any CPU
 		{CBAB5ED1-A107-4598-B477-D88029969F2C}.Release|x86.ActiveCfg = Release|Any CPU
 		{CBAB5ED1-A107-4598-B477-D88029969F2C}.Release|x86.Build.0 = Release|Any CPU
+		{8D0F7EB3-89CE-4BF4-8C35-B3E0498A5723}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D0F7EB3-89CE-4BF4-8C35-B3E0498A5723}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D0F7EB3-89CE-4BF4-8C35-B3E0498A5723}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8D0F7EB3-89CE-4BF4-8C35-B3E0498A5723}.Debug|x64.Build.0 = Debug|Any CPU
+		{8D0F7EB3-89CE-4BF4-8C35-B3E0498A5723}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8D0F7EB3-89CE-4BF4-8C35-B3E0498A5723}.Debug|x86.Build.0 = Debug|Any CPU
+		{8D0F7EB3-89CE-4BF4-8C35-B3E0498A5723}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D0F7EB3-89CE-4BF4-8C35-B3E0498A5723}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D0F7EB3-89CE-4BF4-8C35-B3E0498A5723}.Release|x64.ActiveCfg = Release|Any CPU
+		{8D0F7EB3-89CE-4BF4-8C35-B3E0498A5723}.Release|x64.Build.0 = Release|Any CPU
+		{8D0F7EB3-89CE-4BF4-8C35-B3E0498A5723}.Release|x86.ActiveCfg = Release|Any CPU
+		{8D0F7EB3-89CE-4BF4-8C35-B3E0498A5723}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
