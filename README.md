@@ -1,4 +1,4 @@
-# Oldschool.I18n
+# OldSchool.I18n
 
 # What is this?
 
@@ -29,7 +29,7 @@ and so in sources you have now:
 This is _not really_ readable anymore. 
 
 ### ... and alternative way
-Now what is the alternative? Using Oldschool.I18n you can write it in a kind-of-similar fashion as in [GNU gettext](https://en.wikipedia.org/wiki/Gettext). In your source code readable string stays as it was, it is just wrapped into I18n.Translate() call.
+Now what is the alternative? Using OldSchool.I18n you can write it in a kind-of-similar fashion as in [GNU gettext](https://en.wikipedia.org/wiki/Gettext). In your source code readable string stays as it was, it is just wrapped into I18n.Translate() call.
 
 ```csharp
 return string.Format(I18n.Translate("Foo is {0} and is bigger than planned {1}. Are you sure?"), someVar, actual);
@@ -37,7 +37,7 @@ return string.Format(I18n.Translate("Foo is {0} and is bigger than planned {1}. 
 
 # How it works
 
-It scans source code to find somethings that look like invocation of someI18nClass someI18nMethod that is present outside of comments.
+It scans source code to find somethings that look like invocation of someI18nClass someI18nMethod(s) that is present outside of comments.
 Then it loads existing translation in JSON format (if there's any) and merges them together. During merge it discards not needed translations and adds new ones. Output JSON looks like follows:
 
 ```javascript
@@ -82,7 +82,7 @@ dotnet tool uninstall --global dotnet-oldschool-i18n
 
 # How to use it?
 
-Once installed as global tool it can be invoked anyhwere
+Once installed as global tool it can be invoked anywhere
 
 ```
 dotnet-oldschool-i18n -c I18n -m Translate -o translation_ZZZZZ.json -d .
@@ -93,31 +93,39 @@ where ZZZZZ will typically be CultureInfo's name such as pl-PL
 Supported command line parameters:
  * -c NameOfI18nClass
  * -m NameOfI18nMethod
+ NOTE: this parameter may be specified multiple times making the tool look for several methods in source code
  * -o pathToOutputJsonFile  
   created or updated depending on its existence
  * -q  
  Include 'at' attribute in JSON. Thanks to that you won't see translation file as changed in your Version Control System if just a location of messages changed.
  'At' section may be useful in case need to identify message origin.
  * -d directoryToScan  
- Adds directory with sources to be recoursively scanned
+ Directory with sources to scan recursively
+ NOTE: this parameter may be specified multiple times making the tool look into several folders
  
 # Is it stable?
-I think so. There are plenty of tests written for both C&#35; and F&#35;.
+I think so. There are plenty of tests written for both C&#35; and F&#35;. In my company we are using it in production for several years.
 
 # Features (which constructs are supported?)
+ * C# support uses Microsoft.CodeAnalysis.CSharp
+   Permitted invocations are of kind ```NameOfI18nClass.NameOfI18nMethod(one-or-more-parameter-where-only-first-is-used-and-has-to-be-string)```
+   Assuming that command line parameters are: ```-c I18n -m Translate``` 
+   it will find all the following: 
+   ```I18n.Translate(@"Something")``` 
+   ```I18n.Translate("Something else")```
+   ```I18n.Translate("Another one {0} {1}", 1, 2)```
+   ```I18n.Translate("Another one {0} {1}").SomeExtensionMethod(1, 2)```
 
- * Ignores single line and multiline comments  
- in C&#35; ```//this part is ignored```  
- in C&#35; ```/* this part is ignored */```  
+ * F# still uses "dirty hack" parsing 
+   * Ignores single line and multiline comments  
  in F&#35; ```//this part is ignored```  
  in F&#35; ```(* this part is ignored *)```  
  in F&#35; it understands that ```(*)``` is not a beginning of comment
- * Permits whitespace between class and method and its parameter  
- in C&#35; and F&#35; ```I18n    .Translate ( "something") ```
- * Permits verbatim and nonverbatim strings
- in C&#35; ```I18n.Translate(@"something")```  
+   * Permits whitespace between class and method and its parameter  
+  ```I18n    .Translate ( "something") ```
+   * Permits verbatim and nonverbatim strings
  in F&#35; ```I18n.Translate("""something""")```
- * Understands escaping  
+   * Understands escaping  
  it properly understands ```\t``` and likes in both verbatim and nonverbatim strings
- * Permits invocation via currying in F&#35;   
+   * Permits invocation via currying in F&#35;   
  ```I18n.Translate "something"```
