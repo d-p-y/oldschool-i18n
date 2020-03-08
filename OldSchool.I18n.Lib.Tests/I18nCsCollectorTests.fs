@@ -13,8 +13,7 @@ type CsExtractorTests(log:ITestOutputHelper) =
     let fileName = """c:\smthelse"""
 
     let doTest csFileName =
-        let dir = System.Reflection.Assembly.GetExecutingAssembly().Location |> Path.GetDirectoryName
-        let filePath = Path.Combine(dir, "../../../../OldSchool.I18n.Lib.Tests.CsFiles", csFileName)
+        let filePath = Path.Combine("CsFiles", csFileName)
         CsExtractor.ExtractCs i18Class [i18Method] fileName (File.ReadAllText filePath)
 
     [<Fact>]
