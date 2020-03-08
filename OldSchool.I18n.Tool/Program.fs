@@ -11,7 +11,7 @@ let main argv =
         |> parseArgs log RawConfig.Empty
            
     let fs = System.IO.Abstractions.FileSystem()
-    
+        
     do 
         if not <| cfg.Quit 
         then mainProcess log (cfg.ToConfig fs) fs

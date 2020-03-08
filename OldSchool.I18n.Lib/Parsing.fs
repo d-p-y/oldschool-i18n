@@ -1,5 +1,9 @@
 ﻿module OldSchool.I18n.Parsing
 
+open Microsoft.CodeAnalysis.CSharp.Syntax
+open Microsoft.CodeAnalysis.CSharp
+open System.Linq
+
 type Item = {
     Msg : string
     File : string
@@ -7,15 +11,6 @@ type Item = {
     ///0 based index
     Row : int 
    }
-
-type CsMatchState = 
-|Undefined
-|MatchedClass
-|MatchedDotAfterClass
-|MatchedMethod
-|MatchedOpenBracketAfterMethod
-|MatchedVerbatimMessageStart
-|MatchedNonVerbatimMessageStart //more readable than "regular string"
 
 type FsMatchState = 
 |Undefined
@@ -225,62 +220,66 @@ type Extractor(log) =
         | _, _ ->
             extractFs clazz mthd fnd content.Tail {state with Parsing = FsMatchState.Undefined}
 
-    let csVerbatimStart = "@\"" |> strToMatchChrList
-    let csSlLineComment = "//" |> strToMatchChrList
-    let csMlLineCommentStart = "/*" |> strToMatchChrList
-    let csMlLineCommentEnd = "*/" |> strToMatchChrList
-    
-    let rec extractCs clazz mthd fnd content (state:ParserState<CsMatchState>) =
-        log (fun () -> sprintf "state=%A content=%s found=%A" state (content |> Array.ofList |> System.String) fnd)
-        
-        match state, content with
-        | _, [] -> fnd //end of file
-        | {WhitespaceRelevant = false}, ch::content when isWhitespace ch  ->
-            extractCs clazz mthd fnd content (if ch <> '\n' then state else {state with LineNo = state.LineNo + 1})
-        | {InSingleLineComment = false}, ThenPhrase csSlLineComment (_, content) -> 
-            extractCs clazz mthd fnd content {state with InSingleLineComment = true; WhitespaceRelevant = true}
-        | {InSingleLineComment = true}, ThenChar '\n' content -> 
-            extractCs clazz mthd fnd content {state with InSingleLineComment = false; LineNo = state.LineNo + 1; WhitespaceRelevant = false}
-        | {InSingleLineComment = true}, _ -> 
-            extractCs clazz mthd fnd content.Tail state
-        | {InMultiLineComment = false}, ThenPhrase csMlLineCommentStart (_,content) -> 
-            extractCs clazz mthd fnd content {state with InMultiLineComment = true}
-        | {InMultiLineComment = true}, ThenPhrase csMlLineCommentEnd (_,content) -> 
-           extractCs clazz mthd fnd content {state with InMultiLineComment = false}
-        | {InMultiLineComment = true}, _ -> 
-           extractCs clazz mthd fnd content.Tail state
-        | {Parsing = CsMatchState.Undefined}, ThenPhrase clazz (_,content) ->
-            extractCs clazz mthd fnd content {state with Parsing = CsMatchState.MatchedClass}
-        | {Parsing = CsMatchState.Undefined}, _::rest -> 
-            extractCs clazz mthd fnd rest state
-        | {Parsing = CsMatchState.MatchedClass}, ThenChar '.' content ->
-            extractCs clazz mthd fnd content {state with Parsing = CsMatchState.MatchedDotAfterClass; LineNo = state.LineNo}
-        | {Parsing = CsMatchState.MatchedDotAfterClass}, ThenPhrase mthd (_,content) -> 
-            extractCs clazz mthd fnd content {state with Parsing = CsMatchState.MatchedMethod; LineNo = state.LineNo}
-        | {Parsing = CsMatchState.MatchedMethod}, ThenChar '(' content ->
-            extractCs clazz mthd fnd content {state with Parsing = CsMatchState.MatchedOpenBracketAfterMethod; LineNo = state.LineNo}
-        | {Parsing = CsMatchState.MatchedOpenBracketAfterMethod}, ThenChar '"' content ->
-            extractCs clazz mthd fnd content {state with Parsing = CsMatchState.MatchedNonVerbatimMessageStart; WhitespaceRelevant = true; LineNo = state.LineNo}
-        | {Parsing = CsMatchState.MatchedOpenBracketAfterMethod}, ThenPhrase csVerbatimStart (_,content) ->
-            extractCs clazz mthd fnd content {state with Parsing = CsMatchState.MatchedVerbatimMessageStart; WhitespaceRelevant = true; LineNo = state.LineNo}
-        | {Parsing = CsMatchState.MatchedNonVerbatimMessageStart}, TillCharNotPreceededBy '"' '\\' (matched, content) ->
-            let newItm = csEscapeNonVerbatim matched, state.LineNo
-            extractCs clazz mthd (newItm::fnd) content {state with Parsing = CsMatchState.Undefined; WhitespaceRelevant = false}
-        | {Parsing = CsMatchState.MatchedVerbatimMessageStart}, TillCharNotFollowedBy '"' '"' (matched, content) ->
-            let newItm = escapeVerbatim matched, state.LineNo
-            extractCs clazz mthd (newItm::fnd) content {state with Parsing = CsMatchState.Undefined; WhitespaceRelevant = false}
-        | _, _ ->
-            extractCs clazz mthd fnd content.Tail {state with Parsing = CsMatchState.Undefined}
-
-    let extractCsStrings (i18Class:string) (i18Method:string) filePath (content:string) = 
-        {ParserState.Parsing = CsMatchState.Undefined; WhitespaceRelevant = false; InSingleLineComment = false; InMultiLineComment = false; LineNo = 0}
-        |> extractCs (i18Class |> strToMatchChrList) (i18Method |> strToMatchChrList) List.Empty (content.ToCharArray() |> List.ofArray) 
-        |> List.map (fun (msg, line) -> {Item.File = filePath; Msg = msg; Row = line})
-
     let extractFsStrings (i18Class:string) (i18Method:string) filePath (content:string) = 
         {ParserState.Parsing = FsMatchState.Undefined; WhitespaceRelevant = false; InSingleLineComment = false; InMultiLineComment = false; LineNo = 0}
         |> extractFs (i18Class |> strToMatchChrList) (i18Method |> strToMatchChrList) List.Empty (content.ToCharArray() |> List.ofArray) 
         |> List.map (fun (msg, line) -> {Item.File = filePath; Msg = msg; Row = line})
         
-    member __.ExtractCs = extractCsStrings
-    member __.ExtractFs = extractFsStrings
+    member __.ExtractFs = extractFsStrings //FIXME: to be replaced with proper solution: F# Compiler Services 
+    
+let extractMsg (al:ArgumentListSyntax) =
+    match al.Arguments |> List.ofSeq with
+    |ars::_ -> //support whole family of I18n.Translate(string, [maybe some more formatting params go here])
+        match ars.Expression with
+        | :? LiteralExpressionSyntax as le -> 
+            let content = le.Token.Text
+            let isVerbatim = content.StartsWith("@") 
+            
+            content
+            |> (fun x -> if isVerbatim then x.Substring(1) else x)
+            |> (fun x -> if x.Length <2 then None else x.Substring(1, x.Length-2) |> Some)
+            |> (fun x -> 
+                match x, isVerbatim with
+                |None, _ -> None
+                |Some x, true -> x.Replace("\"\"", "\"") |> Some
+                |Some x, false ->
+                    x.Replace("\\\\", "\\")
+                        .Replace("\\t", "\t")
+                        .Replace("\\r", "\r")
+                        .Replace("\\n", "\n")
+                        .Replace("\\\"", "\"")
+                        .Replace("\\v", "\v")
+                        .Replace("\\f", "\f")
+                        .Replace("\\b", "\b")
+                        .Replace("\\a", "\a")
+                    |> Some )            
+        |_ -> None
+    |_ -> None
+
+type CsExtractor =
+    static member ExtractCs i18nClassName i18nMethodNames filePath (content:string) =        
+        let tree = CSharpSyntaxTree.ParseText(content)
+        let root = tree.GetCompilationUnitRoot()
+    
+        i18nMethodNames
+        |> Seq.collect (fun i18nMethodName -> 
+            root
+                .DescendantNodes()
+                .OfType<InvocationExpressionSyntax>()
+            |> Seq.choose(fun ie -> 
+                    match ie.Expression, ie.ArgumentList with
+                    |(:? MemberAccessExpressionSyntax as mae), al ->
+                        match mae.ChildNodes() |> List.ofSeq with
+                        |(:? IdentifierNameSyntax as clazz)::(:? IdentifierNameSyntax as mthd)::[] 
+                                when clazz.Identifier.Text = i18nClassName && mthd.Identifier.Text = i18nMethodName ->
+
+                            let rowNo = content.Substring(0, clazz.SpanStart).Count(fun c -> c = '\n')
+                        
+                            match extractMsg al with
+                            |Some msg -> {Item.File=filePath; Msg=msg; Row = rowNo}  |> Some
+                            |None -> failwithf "cannot extract message file=%s lineZeroBased=%i" filePath rowNo
+                        |_ -> None
+                    |_ -> None
+                )
+            )
+        |> List.ofSeq

@@ -5,13 +5,16 @@ open OldSchool.I18n.Configuration
 open FSharp.Data
 open System.Collections.Generic
 
-type ExtractableCollector(fs:System.IO.Abstractions.IFileSystem,i18Class,i18Method) =
+type ExtractableCollector(fs:System.IO.Abstractions.IFileSystem,i18Class,i18Methods) =
     let fileExtensions = [".cs"; ".fs"]
     let extractOne filePath content = 
         content 
-        |> if (filePath:string).ToLower().EndsWith(".fs") 
-            then (Extractor (fun _ -> ())).ExtractFs i18Class i18Method filePath
-            else (Extractor (fun _ -> ())).ExtractCs i18Class i18Method filePath
+        |> if (filePath:string).ToLower().EndsWith(".cs") 
+            then CsExtractor.ExtractCs i18Class i18Methods filePath
+            else (fun content ->
+                    i18Methods
+                    |> List.collect (fun i18Method -> 
+                        (Extractor (fun _ -> ())).ExtractFs i18Class i18Method filePath content))
 
     let rec extract dir =
         let subdirs = fs.Directory.GetDirectories(dir) |> Seq.map extract |> Seq.concat
@@ -53,9 +56,7 @@ let trimBaseDir (cfg:Config) (inp:string) =
     |_ -> inp
 
 let collectItems fs (cfg:Config) (oldMsgToTransl:IDictionary<_,_>) = 
-    cfg.I18nMethodName
-    |> Seq.collect(fun i18Method ->
-        ExtractableCollector(fs, cfg.I18nClassName,i18Method).Extract cfg.SearchDirs)         
+    ExtractableCollector(fs, cfg.I18nClassName, cfg.I18nMethodName).Extract cfg.SearchDirs         
     |> Seq.groupBy (fun x -> x.Msg)
     |> Seq.sortBy (fun (x,_) -> x)
     |> Seq.map (fun (msg,all) -> 
