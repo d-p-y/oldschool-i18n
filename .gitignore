@@ -10,3 +10,4 @@ nuget.exe
 packages/
 *.nupkg
 runGitVersionPropagate.bat
+/_ReSharper.Caches/
