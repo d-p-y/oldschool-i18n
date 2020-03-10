@@ -8,9 +8,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\OldSchool.I18n.Lib.Tests.CsFiles\*.cs" Link="CsFiles\%(Filename)%(Extension)">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Compile Include="I18nCsCollectorTests.fs" />
     <Compile Include="I18nFsCollectorTests.fs" />
     <Compile Include="ExtractionTests.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="CsFiles\" />
   </ItemGroup>
 
   <ItemGroup>
