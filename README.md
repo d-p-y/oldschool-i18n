@@ -1,5 +1,7 @@
 # OldSchool.I18n
 
+![.NET Core](https://github.com/d-p-y/oldschool-i18n/workflows/.NET%20Core/badge.svg)
+
 # What is this?
 
 It is a .NET library that finds localizable messages in C# and F# source code and stores them in JSON resource files updating it if possible. 
